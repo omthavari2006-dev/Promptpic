@@ -1,14 +1,14 @@
 /**
  * Participant Client Controller
- * Manages participant joining, state transitions, prompt submission, peer voting, and sound effects.
+ * Manages participant joining, prompt submission, peer voting, sound effects, and Live Dashboard modal.
  */
 
 (function () {
   const socket = io();
 
-  // State
+  // State (Tab-isolated via sessionStorage)
   let currentRoom = null;
-  let participantId = localStorage.getItem('prompt_participant_id') || null;
+  let participantId = sessionStorage.getItem('prompt_participant_id') || null;
   let selectedAvatar = '🤖';
   let mySubmittedPrompt = '';
   let currentState = null;
@@ -16,6 +16,8 @@
   // DOM Elements
   const headerStatusDot = document.getElementById('header-status-dot');
   const headerStatusText = document.getElementById('header-status-text');
+  const btnHeaderDashboard = document.getElementById('btn-header-dashboard');
+  const btnFloatingDashboard = document.getElementById('btn-floating-dashboard');
 
   // Views
   const viewJoin = document.getElementById('view-join');
@@ -61,6 +63,28 @@
   const winnerPromptText = document.getElementById('winner-prompt-text');
   const roundStandingsList = document.getElementById('round-standings-list');
 
+  // Dashboard Modal Elements
+  const participantDashboardModal = document.getElementById('participant-dashboard-modal');
+  const btnCloseDashboardModal = document.getElementById('btn-close-dashboard-modal');
+  const btnModalBack = document.getElementById('btn-modal-back');
+  const modalDashTitle = document.getElementById('modal-dash-title');
+  const modalDashRoom = document.getElementById('modal-dash-room');
+  const modalPlayerRank = document.getElementById('modal-player-rank');
+  const modalPlayerScore = document.getElementById('modal-player-score');
+  const modalPlayerWins = document.getElementById('modal-player-wins');
+  const modalTotalPlayers = document.getElementById('modal-total-players');
+
+  // Modal Tabs
+  const modalTabLeaderboard = document.getElementById('modal-tab-leaderboard');
+  const modalTabHistory = document.getElementById('modal-tab-history');
+  const modalTabPlayers = document.getElementById('modal-tab-players');
+  const modalPanelLeaderboard = document.getElementById('modal-panel-leaderboard');
+  const modalPanelHistory = document.getElementById('modal-panel-history');
+  const modalPanelPlayers = document.getElementById('modal-panel-players');
+  const modalLeaderboardTable = document.getElementById('modal-leaderboard-table');
+  const modalHistoryList = document.getElementById('modal-history-list');
+  const modalPlayersList = document.getElementById('modal-players-list');
+
   // Toast Helper
   function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -97,11 +121,11 @@
     inputRoomCode.value = roomParam.toUpperCase();
   }
 
-  // Pre-fill Name if previously stored
-  const savedName = localStorage.getItem('prompt_participant_name');
+  // Pre-fill Name if previously stored in this session
+  const savedName = sessionStorage.getItem('prompt_participant_name');
   if (savedName && inputName) inputName.value = savedName;
 
-  const savedTeam = localStorage.getItem('prompt_participant_team');
+  const savedTeam = sessionStorage.getItem('prompt_participant_team');
   if (savedTeam && inputTeam) inputTeam.value = savedTeam;
 
   // Avatar Selection
@@ -146,10 +170,9 @@
         return;
       }
 
-      localStorage.setItem('prompt_participant_name', name);
-      localStorage.setItem('prompt_participant_team', team);
+      sessionStorage.setItem('prompt_participant_name', name);
+      sessionStorage.setItem('prompt_participant_team', team);
 
-      // Trigger Web Audio resume on user gesture
       if (window.soundEngine) window.soundEngine.init();
 
       socket.emit('participant:join', {
@@ -166,8 +189,8 @@
 
         currentRoom = code;
         participantId = res.participantId;
-        localStorage.setItem('prompt_participant_id', participantId);
-        localStorage.setItem('prompt_room_code', currentRoom);
+        sessionStorage.setItem('prompt_participant_id', participantId);
+        sessionStorage.setItem('prompt_room_code', currentRoom);
 
         showToast(`Welcome to Arena, ${name}!`, 'success');
         renderState(res.state);
@@ -229,16 +252,199 @@
     });
   }
 
-  // Render Full State Machine UI
+  // --- PARTICIPANT LIVE DASHBOARD MODAL LOGIC ---
+
+  function openDashboardModal() {
+    if (participantDashboardModal) {
+      participantDashboardModal.style.display = 'flex';
+      if (currentState) renderParticipantDashboard(currentState);
+    }
+  }
+
+  function closeDashboardModal() {
+    if (participantDashboardModal) {
+      participantDashboardModal.style.display = 'none';
+    }
+  }
+
+  if (btnHeaderDashboard) btnHeaderDashboard.addEventListener('click', openDashboardModal);
+  if (btnFloatingDashboard) btnFloatingDashboard.addEventListener('click', openDashboardModal);
+  if (btnCloseDashboardModal) btnCloseDashboardModal.addEventListener('click', closeDashboardModal);
+  if (btnModalBack) btnModalBack.addEventListener('click', closeDashboardModal);
+
+  // Close modal when clicking on backdrop
+  if (participantDashboardModal) {
+    participantDashboardModal.addEventListener('click', (e) => {
+      if (e.target === participantDashboardModal) {
+        closeDashboardModal();
+      }
+    });
+  }
+
+  // Modal Tabs Switching
+  if (modalTabLeaderboard && modalTabHistory && modalTabPlayers) {
+    modalTabLeaderboard.addEventListener('click', () => {
+      modalTabLeaderboard.className = 'btn btn-cyan btn-sm';
+      modalTabHistory.className = 'btn btn-outline btn-sm';
+      modalTabPlayers.className = 'btn btn-outline btn-sm';
+      modalPanelLeaderboard.style.display = 'block';
+      modalPanelHistory.style.display = 'none';
+      modalPanelPlayers.style.display = 'none';
+    });
+
+    modalTabHistory.addEventListener('click', () => {
+      modalTabHistory.className = 'btn btn-cyan btn-sm';
+      modalTabLeaderboard.className = 'btn btn-outline btn-sm';
+      modalTabPlayers.className = 'btn btn-outline btn-sm';
+      modalPanelLeaderboard.style.display = 'none';
+      modalPanelHistory.style.display = 'block';
+      modalPanelPlayers.style.display = 'none';
+    });
+
+    modalTabPlayers.addEventListener('click', () => {
+      modalTabPlayers.className = 'btn btn-cyan btn-sm';
+      modalTabLeaderboard.className = 'btn btn-outline btn-sm';
+      modalTabHistory.className = 'btn btn-outline btn-sm';
+      modalPanelLeaderboard.style.display = 'none';
+      modalPanelHistory.style.display = 'none';
+      modalPanelPlayers.style.display = 'block';
+    });
+  }
+
+  function renderParticipantDashboard(state) {
+    if (!state) return;
+
+    if (modalDashTitle) modalDashTitle.textContent = state.title || 'Arena Live Dashboard';
+    if (modalDashRoom) modalDashRoom.textContent = `ROOM PIN: ${state.roomCode} • ${state.status}`;
+
+    const leaderboard = state.leaderboard || [];
+    const myIndex = leaderboard.findIndex(p => p.id === participantId);
+    const myRank = myIndex >= 0 ? `#${myIndex + 1}` : '-';
+    const myScore = myIndex >= 0 ? `${leaderboard[myIndex].totalScore || 0} pts` : '0 pts';
+    const myWins = myIndex >= 0 ? `${leaderboard[myIndex].roundWins || 0}` : '0';
+
+    if (modalPlayerRank) modalPlayerRank.textContent = myRank;
+    if (modalPlayerScore) modalPlayerScore.textContent = myScore;
+    if (modalPlayerWins) modalPlayerWins.textContent = myWins;
+    if (modalTotalPlayers) modalTotalPlayers.textContent = state.participantCount || 0;
+
+    // 1. Leaderboard Table
+    if (modalLeaderboardTable) {
+      modalLeaderboardTable.innerHTML = `
+        <div class="leaderboard-row header">
+          <div>RANK</div>
+          <div>AVATAR</div>
+          <div>PARTICIPANT</div>
+          <div>WINS</div>
+          <div style="text-align: right;">TOTAL VOTES</div>
+        </div>
+      `;
+
+      leaderboard.forEach((p, idx) => {
+        const isSelf = p.id === participantId;
+        const rankClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
+        const rankMedal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        if (isSelf) row.style.background = 'rgba(0, 243, 255, 0.08)';
+
+        row.innerHTML = `
+          <div class="rank-badge ${rankClass}">${rankMedal}</div>
+          <div style="font-size: 1.3rem;">${p.avatar || '🤖'}</div>
+          <div>
+            <div style="font-weight: 700;">${p.name} ${isSelf ? '<span class="badge badge-cyan" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">YOU</span>' : ''}</div>
+            ${p.teamName ? `<div style="font-size: 0.75rem; color: var(--text-secondary);">${p.teamName}</div>` : ''}
+          </div>
+          <div style="font-family: var(--font-mono); color: var(--accent-amber); font-weight: 600;">${p.roundWins || 0} 🏆</div>
+          <div style="font-family: var(--font-mono); font-weight: 800; font-size: 1.05rem; color: var(--accent-cyan); text-align: right;">${p.totalScore}</div>
+        `;
+        modalLeaderboardTable.appendChild(row);
+      });
+    }
+
+    // 2. Round History
+    if (modalHistoryList) {
+      modalHistoryList.innerHTML = '';
+      const history = state.roundHistory || [];
+
+      if (history.length === 0) {
+        modalHistoryList.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            No completed rounds yet. Results will appear here after Round 1 ends!
+          </div>
+        `;
+      } else {
+        [...history].reverse().forEach(r => {
+          const card = document.createElement('div');
+          card.className = 'glass-card';
+          card.style.padding = '1rem';
+          card.style.background = 'rgba(10, 15, 26, 0.8)';
+
+          const topWinner = (r.winners && r.winners.length > 0) ? r.winners[0] : null;
+
+          card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <span class="badge badge-gold">ROUND ${r.roundNumber} WINNER</span>
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">${r.totalVotes || 0} total votes</span>
+            </div>
+
+            ${topWinner ? `
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+                <span style="font-size: 1.5rem;">${topWinner.avatar || '👑'}</span>
+                <div>
+                  <div style="font-weight: 700; color: #fff;">${topWinner.participantName}</div>
+                  <div style="font-size: 0.75rem; color: var(--accent-cyan);">${topWinner.voteCount} Votes</div>
+                </div>
+              </div>
+
+              <div class="prompt-content-box" style="font-size: 0.85rem; padding: 0.75rem;">
+                "${escapeHtml(topWinner.promptText)}"
+              </div>
+            ` : '<div style="color: var(--text-muted); font-size: 0.85rem;">No winner declared</div>'}
+          `;
+
+          modalHistoryList.appendChild(card);
+        });
+      }
+    }
+
+    // 3. Connected Players List
+    if (modalPlayersList) {
+      modalPlayersList.innerHTML = '';
+      (state.participants || []).forEach(p => {
+        const isSelf = p.id === participantId;
+        const pill = document.createElement('div');
+        pill.className = 'participant-pill';
+        if (isSelf) pill.style.borderColor = 'var(--accent-cyan)';
+        pill.innerHTML = `
+          <span>${p.avatar || '🤖'}</span>
+          <span>${p.name}</span>
+          ${isSelf ? '<span class="badge badge-cyan" style="font-size: 0.6rem; padding: 0.1rem 0.3rem;">YOU</span>' : ''}
+        `;
+        modalPlayersList.appendChild(pill);
+      });
+    }
+  }
+
+  // --- RENDER MAIN STATE MACHINE ---
+
   function renderState(state) {
     if (!state) return;
     currentState = state;
 
+    // Show dashboard button in header and floating bar if joined
+    if (btnHeaderDashboard) btnHeaderDashboard.style.display = 'inline-flex';
+    if (btnFloatingDashboard) btnFloatingDashboard.style.display = 'inline-flex';
+
     // Update Header Status
     if (headerStatusDot && headerStatusText) {
       headerStatusDot.className = 'status-dot active';
-      headerStatusText.textContent = `Room ${state.roomCode} • R${state.currentRound}`;
+      headerStatusText.textContent = `Room ${state.roomCode} • R${state.currentRound || 0}`;
     }
+
+    // Update modal contents in background if open
+    renderParticipantDashboard(state);
 
     switch (state.status) {
       case 'LOBBY':
@@ -601,22 +807,22 @@
     window.location.reload();
   });
 
-  // Re-authenticate / reconnect if participant had active session
+  // Re-authenticate / reconnect if participant had active session in this tab
   socket.on('connect', () => {
     if (headerStatusDot && headerStatusText) {
       headerStatusDot.className = 'status-dot';
       headerStatusText.textContent = 'Connected';
     }
 
-    const savedRoom = localStorage.getItem('prompt_room_code');
-    const savedId = localStorage.getItem('prompt_participant_id');
-    const savedName = localStorage.getItem('prompt_participant_name');
+    const savedRoom = sessionStorage.getItem('prompt_room_code');
+    const savedId = sessionStorage.getItem('prompt_participant_id');
+    const savedName = sessionStorage.getItem('prompt_participant_name');
 
     if (savedRoom && savedId && savedName) {
       socket.emit('participant:join', {
         roomCode: savedRoom,
         name: savedName,
-        teamName: localStorage.getItem('prompt_participant_team') || '',
+        teamName: sessionStorage.getItem('prompt_participant_team') || '',
         avatar: selectedAvatar,
         participantId: savedId
       }, (res) => {
