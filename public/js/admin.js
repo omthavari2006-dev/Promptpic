@@ -243,19 +243,18 @@
         });
       });
 
-      // Attach delete handlers
+      // Attach delete handlers (Instant delete without confirmation alert)
       adminChallengesGallery.querySelectorAll('.btn-del-chal').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const id = e.currentTarget.getAttribute('data-id');
-          if (confirm('Delete this challenge picture from the arena pool?')) {
-            socket.emit('admin:delete-custom-challenge', { challengeId: id }, (res) => {
-              if (res && res.success) {
-                allChallenges = res.challenges || [];
-                renderChallengesPool();
-                showToast('Challenge picture deleted', 'info');
-              }
-            });
-          }
+          if (!id) return;
+          socket.emit('admin:delete-custom-challenge', { challengeId: id }, (res) => {
+            if (res && res.success) {
+              allChallenges = res.challenges || [];
+              renderChallengesPool();
+              showToast('Challenge picture deleted', 'info');
+            }
+          });
         });
       });
     }
@@ -885,14 +884,20 @@
   // Init
   loadChallenges();
 
-  // Reconnect if admin room exists
+  // Reconnect if admin room exists or room param is in URL
   socket.on('connect', () => {
-    const savedRoom = localStorage.getItem('prompt_admin_room');
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlRoom = (urlParams.get('room') || '').toUpperCase().trim();
+    const savedRoom = urlRoom || (localStorage.getItem('prompt_admin_room') || '').toUpperCase().trim();
+
     if (savedRoom) {
       socket.emit('admin:join-room', { roomCode: savedRoom }, (res) => {
         if (res && res.success) {
           currentRoom = savedRoom;
+          localStorage.setItem('prompt_admin_room', savedRoom);
           showDashboard(res.state);
+        } else if (urlRoom) {
+          showToast(res ? res.error : 'Competition room not found', 'error');
         }
       });
     }
