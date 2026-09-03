@@ -468,7 +468,7 @@
       const title = inputCustomTitle.value.trim();
       const category = inputCustomCategory.value.trim() || 'Custom Art';
       const difficulty = selectCustomDifficulty.value || 'Medium';
-      const description = inputCustomDesc.value.trim() || 'Write a prompt to replicate this visual artwork.';
+      const description = inputCustomDesc.value.trim() || 'Write a caption for this image.';
       const hint = inputCustomHint.value.trim() || 'Focus on style, lighting, and detail.';
 
       if (!title) {

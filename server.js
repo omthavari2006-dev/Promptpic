@@ -595,7 +595,7 @@ io.on('connection', (socket) => {
 
     const text = (promptText || '').trim();
     if (!text) {
-      if (typeof callback === 'function') callback({ success: false, error: 'Prompt cannot be empty.' });
+      if (typeof callback === 'function') callback({ success: false, error: 'Caption cannot be empty.' });
       return;
     }
 
@@ -617,10 +617,10 @@ io.on('connection', (socket) => {
       voteCount: 0
     };
 
-    console.log(`[Submission] ${participant.name} submitted prompt for round ${comp.currentRound}`);
+    console.log(`[Submission] ${participant.name} submitted caption for round ${comp.currentRound}`);
 
     if (typeof callback === 'function') {
-      callback({ success: true, message: 'Prompt submitted successfully!' });
+      callback({ success: true, message: 'Caption submitted successfully!' });
     }
 
     // Notify room of submission progress
@@ -656,7 +656,7 @@ io.on('connection', (socket) => {
     // Validation 2: Participant cannot vote for their own submission (ANTI-SELF-VOTING)
     if (submissionId === participantId) {
       if (typeof callback === 'function') {
-        callback({ success: false, error: 'Cheating Prevention: You cannot vote for your own prompt!' });
+        callback({ success: false, error: 'Cheating Prevention: You cannot vote for your own caption!' });
       }
       return;
     }
@@ -947,7 +947,7 @@ io.on('connection', (socket) => {
       difficulty: data.difficulty || 'Medium',
       hint: data.hint || 'Focus on style, lighting, and detail.',
       imageUrl: data.imageUrl,
-      description: data.description || 'Create a prompt to generate this image.',
+      description: data.description || 'Write a caption for this image.',
       isCustom: true
     };
 

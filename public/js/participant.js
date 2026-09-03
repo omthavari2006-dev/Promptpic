@@ -330,7 +330,7 @@
       const text = textareaPrompt.value.trim();
 
       if (!text) {
-        showToast('Please enter your prompt formulation.', 'warning');
+        showToast('Please enter your caption.', 'warning');
         return;
       }
 
@@ -339,16 +339,16 @@
 
       socket.emit('participant:submit-prompt', { promptText: text }, (res) => {
         btnSubmitPrompt.disabled = false;
-        btnSubmitPrompt.innerHTML = '<span>🚀 Update My Prompt</span>';
+        btnSubmitPrompt.innerHTML = '<span>🚀 Update My Caption</span>';
 
         if (!res || !res.success) {
-          showToast(res ? res.error : 'Failed to submit prompt', 'error');
+          showToast(res ? res.error : 'Failed to submit caption', 'error');
           return;
         }
 
         mySubmittedPrompt = text;
         if (window.soundEngine) window.soundEngine.playSubmit();
-        showToast('Prompt successfully submitted!', 'success');
+        showToast('Caption successfully submitted!', 'success');
         if (submissionStatusFeedback) {
           submissionStatusFeedback.style.display = 'block';
         }
@@ -630,7 +630,7 @@
     const challenge = state.currentChallenge;
     if (challenge) {
       if (challengeImage) challengeImage.src = challenge.imageUrl || '';
-      if (challengeCategory) challengeCategory.textContent = challenge.category || 'Visual Prompt';
+      if (challengeCategory) challengeCategory.textContent = challenge.category || 'Visual Caption';
       if (challengeDifficulty) challengeDifficulty.textContent = challenge.difficulty || 'Normal';
       if (challengeTitle) challengeTitle.textContent = challenge.title || 'Recreate Reference Visual';
       if (challengeDesc) challengeDesc.textContent = challenge.description || 'Describe the visual elements.';
@@ -690,7 +690,7 @@
           actionButtonHtml = `<button class="btn btn-outline btn-sm" disabled>Vote</button>`;
         }
       } else {
-        actionButtonHtml = `<button class="btn btn-cyan btn-sm btn-vote" data-id="${sub.id}">🗳️ Vote for Prompt</button>`;
+        actionButtonHtml = `<button class="btn btn-cyan btn-sm btn-vote" data-id="${sub.id}">🗳️ Vote for Caption</button>`;
       }
 
       card.innerHTML = `
