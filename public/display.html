@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Prompt Battle - Live Projector Display</title>
+  <meta name="description" content="Live event screen for AI Prompt Battle competitions. Projector mode for auditoriums, hackathons, and clubs.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Display-Specific Projector Mode Overrides */
+    body {
+      background-color: #04060a;
+      overflow-y: auto;
+    }
+
+    .display-header {
+      padding: 1.25rem 3rem;
+      background: rgba(10, 15, 26, 0.85);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+    }
+
+    .display-container {
+      max-width: 1500px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    .big-qr-box {
+      background: #080b12;
+      border: 3px solid var(--accent-cyan);
+      box-shadow: 0 0 50px rgba(0, 243, 255, 0.4);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .huge-pin-code {
+      font-family: var(--font-mono);
+      font-size: 3.8rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 30px var(--accent-cyan);
+    }
+
+    .big-timer-badge {
+      font-family: var(--font-mono);
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 20px var(--accent-cyan);
+    }
+
+    .big-challenge-frame {
+      max-height: 560px;
+      border-radius: var(--radius-xl);
+      border: 2px solid var(--border-medium);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 243, 255, 0.2);
+    }
+
+    .avatar-bubble-stream {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      max-width: 900px;
+      margin: 2rem auto 0;
+    }
+
+    .avatar-bubble {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(18, 25, 41, 0.9);
+      border: 1px solid var(--border-medium);
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-full);
+      font-size: 1.1rem;
+      font-weight: 700;
+      animation: winner-spotlight 0.5s ease-out;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Projector Top Header -->
+  <header class="app-header display-header">
+    <div class="brand-logo">
+      <span class="brand-icon" style="font-size: 2.2rem;">🎨</span>
+      <div>
+        <div class="brand-name" style="font-size: 1.8rem;" id="display-event-title">AI PROMPT BATTLE</div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); font-family: var(--font-mono);">LIVE AUDITORIUM ARENA</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <div class="badge badge-magenta" id="display-round-pill" style="font-size: 1.1rem; padding: 0.5rem 1.4rem;">
+        ROUND 0
+      </div>
+
+      <div class="header-status-badge" style="font-size: 1.1rem; padding: 0.5rem 1.2rem;">
+        <span class="status-dot active" id="display-status-dot"></span>
+        <span id="display-status-label">LOBBY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Projector View Stage -->
+  <main class="display-container" id="display-stage">
+
+    <!-- ========================================== -->
+    <!-- STAGE 0: SELECT ROOM / ENTER PIN (IF NOT IN URL) -->
+    <!-- ========================================== -->
+    <section id="disp-view-room-select" class="glass-card" style="max-width: 550px; margin: 4rem auto; text-align: center;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">📺</div>
+      <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Connect Projector Screen</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        Enter the 6-character room PIN generated on the Host Dashboard:
+      </p>
+
+      <form id="form-display-room">
+        <input 
+          type="text" 
+          id="input-display-pin" 
+          class="form-input input-code" 
+          placeholder="PIN" 
+          maxlength="8" 
+          required 
+          style="font-size: 2rem; padding: 1rem; margin-bottom: 1.5rem;"
+        >
+        <button type="submit" class="btn btn-cyan btn-lg btn-block">
+          Connect to Arena
+        </button>
+      </form>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 1: LOBBY & QR CODE ENTRANCE -->
+    <!-- ========================================== -->
+    <section id="disp-view-lobby" style="display: none; text-align: center;">
+      <div style="margin-bottom: 2rem;">
+        <div class="badge badge-cyan" style="font-size: 1rem; padding: 0.4rem 1.2rem; margin-bottom: 0.75rem;">
+          JOIN THE COMPETITION
+        </div>
+        <h1 style="font-size: 3.2rem; margin-bottom: 0.5rem;">
+          Scan QR or Enter PIN to <span class="gradient-text-cyan">Compete</span>
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.2rem;">
+          Open your phone camera to join real-time prompt battle
+        </p>
+      </div>
+
+      <div class="big-qr-box">
+        <img id="disp-qr-img" src="" alt="Live Join QR Code" style="width: 280px; height: 280px; display: block; border-radius: var(--radius-lg);">
+        <div>
+          <div style="font-size: 0.95rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.25rem;">
+            ARENA ROOM CODE
+          </div>
+          <div class="huge-pin-code" id="disp-pin-text">
+            ------
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 2.5rem;">
+        <div style="font-size: 1.3rem; font-weight: 800; color: #fff; font-family: var(--font-heading);">
+          👥 JOINED PARTICIPANTS: <span class="gradient-text-cyan" id="disp-lobby-count">0</span>
+        </div>
+
+        <div class="avatar-bubble-stream" id="disp-lobby-avatar-stream">
+          <!-- Dynamically filled with joined player bubbles -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 2: ACTIVE VISUAL CHALLENGE -->
+    <!-- ========================================== -->
+    <section id="disp-view-challenge" style="display: none;">
+      
+      <!-- Big Countdown & Submissions Progress Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1.25rem 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-medium);">
+        <div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">CHALLENGE TARGET</div>
+          <h2 id="disp-chal-title" style="font-size: 2rem; margin-top: 0.2rem;">Neon Cyberpunk Metropolis</h2>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 2.5rem;">
+          <div style="text-align: right;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">PROMPTS SUBMITTED</div>
+            <div style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: 800; color: var(--accent-emerald);" id="disp-submission-tally">
+              0 / 0
+            </div>
+          </div>
+
+          <div class="timer-container" id="disp-timer-box" style="padding: 0.5rem 1.8rem;">
+            <span>⏱️</span>
+            <span class="big-timer-badge" id="disp-timer-clock">01:30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cinema-size Visual Frame -->
+      <div class="glass-card" style="padding: 1.25rem;">
+        <div class="challenge-image-wrapper big-challenge-frame">
+          <img id="disp-chal-img" class="challenge-image" src="" alt="Target Challenge Visual" style="max-height: 540px; width: 100%; object-fit: cover;">
+          <div class="challenge-badge-overlay">
+            <span class="badge badge-cyan" id="disp-chal-category" style="font-size: 1rem; padding: 0.5rem 1.2rem;">Cyberpunk</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; font-size: 1.15rem; color: #cbd5e1; line-height: 1.6;" id="disp-chal-desc">
+          Describe the subject, lighting, mood, color palette, and artistic styling to reproduce this image.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 3: PEER VOTING SHOWCASE -->
+    <!-- ========================================== -->
+    <section id="disp-view-voting" style="display: none;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: var(--bg-card); padding: 1.25rem 2rem; border-radius: var(--radius-lg); border: 1px solid var(--accent-amber);">
+        <div>
+          <div class="badge badge-gold" style="font-size: 0.95rem; margin-bottom: 0.3rem;">PEER VOTING IN PROGRESS</div>
+          <h2 style="font-size: 2.2rem;">Choose the <span class="gradient-text-gold">Best Formulation</span></h2>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 2rem;">
+          <div style="text-align: right;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">VOTES CAST</div>
+            <div style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: 800; color: var(--accent-amber);" id="disp-vote-tally">
+              0 / 0
+            </div>
+          </div>
+
+          <div class="timer-container" style="padding: 0.5rem 1.8rem; border-color: var(--accent-amber);">
+            <span>🗳️</span>
+            <span class="big-timer-badge" id="disp-voting-timer-clock" style="color: var(--accent-amber); text-shadow: 0 0 20px var(--accent-amber);">00:45</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submissions Grid on Big Screen -->
+      <div class="voting-grid" id="disp-voting-grid" style="grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
+        <!-- Dynamically injected prompt cards -->
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 4: DRAMATIC ROUND WINNER REVEAL -->
+    <!-- ========================================== -->
+    <section id="disp-view-winner" style="display: none; text-align: center; margin-top: 1rem;">
+      <div class="winner-hero-card" style="padding: 3.5rem 2rem;">
+        <div class="trophy-icon-large" style="font-size: 6rem;">🏆</div>
+        
+        <div class="badge badge-gold" id="disp-winner-round-badge" style="font-size: 1.1rem; padding: 0.5rem 1.5rem; margin-bottom: 1rem;">
+          ROUND CHAMPION
+        </div>
+
+        <h1 class="winner-team-title" id="disp-winner-title" style="font-size: 3.6rem;">
+          Team Champion
+        </h1>
+
+        <div style="font-family: var(--font-mono); font-size: 2.2rem; font-weight: 900; color: var(--accent-cyan); margin: 0.5rem 0 1.5rem;">
+          <span id="disp-winner-votes">0</span> PEER VOTES
+        </div>
+
+        <div class="winner-prompt-highlight" style="font-size: 1.4rem; max-width: 1000px; padding: 2rem;">
+          <p id="disp-winner-prompt-text">
+            "Prompt text here..."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 5: GRAND FINALE LEADERBOARD PODIUM -->
+    <!-- ========================================== -->
+    <section id="disp-view-leaderboard" style="display: none;">
+      <div style="text-align: center; margin-bottom: 2.5rem;">
+        <div style="font-size: 4.5rem; animation: trophy-float 2.5s infinite;">👑</div>
+        <h1 style="font-size: 3.2rem;">AI Prompt Battle <span class="gradient-text-gold">Champions</span></h1>
+        <p style="color: var(--text-secondary); font-size: 1.3rem;">Final overall standings and tournament winners</p>
+      </div>
+
+      <!-- Massive Grand Podium -->
+      <div class="podium-container" id="disp-podium-container" style="margin-bottom: 3rem;">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Full Standings Table -->
+      <div class="leaderboard-table-wrapper" id="disp-leaderboard-table" style="max-width: 1100px; margin: 0 auto;">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/confetti.js"></script>
+  <script src="/js/display.js"></script>
+</body>
+</html>

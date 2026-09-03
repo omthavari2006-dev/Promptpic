@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Prompt Battle - Host & Admin Control Console</title>
+  <meta name="description" content="Host and manage live AI prompt battle competitions. Control rounds, voting, challenge selection, and live results.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <a href="/admin" class="brand-logo">
+      <span class="brand-icon">⚡</span>
+      <div>
+        <div class="brand-name">PROMPT<span class="gradient-text-magenta">CONTROL</span></div>
+      </div>
+      <span class="brand-badge" style="border-color: var(--accent-magenta); color: var(--accent-magenta); background: rgba(255, 0, 119, 0.1);">Host Admin</span>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <a href="/display" target="_blank" class="btn btn-outline-cyan btn-sm" id="btn-open-projector" style="display: none;">
+        <span>📺 Open Projector Screen</span>
+        <span>↗</span>
+      </a>
+      <div class="header-status-badge">
+        <span class="status-dot" id="admin-status-dot"></span>
+        <span id="admin-status-text">Disconnected</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container container-wide" style="margin-top: 1.5rem; margin-bottom: 3rem;">
+
+    <!-- ========================================== -->
+    <!-- SECTION 1: CREATE / SELECT COMPETITION -->
+    <!-- ========================================== -->
+    <section id="admin-setup-view" class="glass-card interactive highlight-magenta" style="max-width: 720px; margin: 2rem auto;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎮</div>
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Host an <span class="gradient-text-magenta">AI Prompt Battle</span></h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+          Configure your event room and lead the competition with peer-voting.
+        </p>
+      </div>
+
+      <form id="form-create-competition">
+        <div class="form-group">
+          <label class="form-label" for="input-competition-title">
+            <span>Event / Competition Name</span>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">REQUIRED</span>
+          </label>
+          <input 
+            type="text" 
+            id="input-competition-title" 
+            class="form-input" 
+            placeholder="e.g. ACM AI Prompt Showdown 2026" 
+            value="AI Club Prompt Battle" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="select-round-duration">
+            <span>Default Round Duration</span>
+          </label>
+          <select id="select-round-duration" class="form-select">
+            <option value="60">60 Seconds (Fast Blitz)</option>
+            <option value="90" selected>90 Seconds (Recommended Standard)</option>
+            <option value="120">120 Seconds (Standard Extended)</option>
+            <option value="180">180 Seconds (Deep Crafting)</option>
+          </select>
+        </div>
+
+        <button type="submit" id="btn-create-arena" class="btn btn-magenta btn-lg btn-block" style="margin-top: 1.5rem;">
+          <span>⚡ Launch Competition Arena</span>
+          <span>➔</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: LIVE CONTROL DASHBOARD -->
+    <!-- ========================================== -->
+    <section id="admin-dashboard-view" style="display: none;">
+
+      <!-- Top Room Info & PIN Banner -->
+      <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; border-color: var(--border-medium);">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+            <h1 id="dash-comp-title" style="font-size: 1.6rem;">Competition Arena</h1>
+            <span class="badge badge-cyan" id="dash-status-badge">LOBBY</span>
+          </div>
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">
+            Room PIN: <strong class="gradient-text-cyan" id="dash-room-code" style="font-family: var(--font-mono); font-size: 1.25rem; letter-spacing: 0.1em;">------</strong>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button type="button" class="btn btn-outline-cyan btn-sm" id="btn-show-qr">
+            <span>📱 Show QR Code</span>
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-copy-join-link">
+            <span>🔗 Copy Player Link</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Metric Cards -->
+      <div class="admin-stats-grid">
+        <div class="stat-box">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <span class="stat-label">Participants</span>
+            <span class="stat-value" id="stat-participants">0</span>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon" style="background: rgba(255, 0, 119, 0.1); color: var(--accent-magenta); border-color: var(--border-glow);">🎯</div>
+          <div class="stat-info">
+            <span class="stat-label">Current Round</span>
+            <span class="stat-value" id="stat-round">0</span>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--accent-emerald);">✍️</div>
+          <div class="stat-info">
+            <span class="stat-label">Submissions</span>
+            <span class="stat-value" id="stat-submissions">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon" style="background: rgba(255, 183, 3, 0.1); color: var(--accent-amber);">🗳️</div>
+          <div class="stat-info">
+            <span class="stat-label">Votes Cast</span>
+            <span class="stat-value" id="stat-votes">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--accent-purple);">⏱️</div>
+          <div class="stat-info">
+            <span class="stat-label">Timer</span>
+            <span class="stat-value" id="stat-timer" style="font-size: 1.4rem;">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN STATE CONTROLLER ACTION BAR -->
+      <div class="glass-card" style="margin-bottom: 2rem; border-color: var(--accent-cyan);">
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--accent-cyan); display: flex; align-items: center; gap: 0.5rem;">
+          <span>🕹️</span> Host Game Flow Controls
+        </h3>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;" id="admin-control-buttons">
+          <!-- Step 1: Start Round -->
+          <button id="ctrl-start-round" class="btn btn-cyan btn-lg">
+            <span>🚀 1. Start Round</span>
+          </button>
+
+          <!-- Step 2: Close Submissions -->
+          <button id="ctrl-close-submissions" class="btn btn-amber btn-lg" disabled>
+            <span>🔒 2. Close Submissions</span>
+          </button>
+
+          <!-- Step 3: Start Voting -->
+          <button id="ctrl-start-voting" class="btn btn-emerald btn-lg" disabled>
+            <span>🗳️ 3. Start Peer Voting</span>
+          </button>
+
+          <!-- Step 4: End Voting -->
+          <button id="ctrl-end-voting" class="btn btn-amber btn-lg" disabled>
+            <span>🛑 4. End Voting</span>
+          </button>
+
+          <!-- Step 5: Show Winner -->
+          <button id="ctrl-show-winner" class="btn btn-magenta btn-lg" disabled>
+            <span>🏆 5. Reveal Winner</span>
+          </button>
+
+          <!-- Step 6: Next Round -->
+          <button id="ctrl-next-round" class="btn btn-cyan btn-lg" disabled>
+            <span>⏭️ Next Round</span>
+          </button>
+
+          <!-- Grand Finale: End Competition -->
+          <button id="ctrl-end-comp" class="btn btn-outline-cyan btn-lg">
+            <span>👑 Final Leaderboard</span>
+          </button>
+
+          <!-- Emergency Cancel -->
+          <button id="ctrl-cancel-round" class="btn btn-outline btn-lg" style="margin-left: auto; border-color: rgba(255, 0, 119, 0.4); color: var(--accent-magenta);">
+            <span>❌ Cancel Round</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DEDICATED SECTION: ROUND CHALLENGE IMAGES & CUSTOM UPLOADER -->
+      <div class="glass-card" style="margin-bottom: 2rem; border-color: var(--accent-magenta); box-shadow: var(--shadow-glow-magenta);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div class="badge badge-magenta" style="margin-bottom: 0.25rem;">ADMIN IMAGE MANAGER</div>
+            <h2 style="font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>📸</span> Provide Challenge Pictures for Rounds
+            </h2>
+          </div>
+          <button type="button" class="btn btn-outline-cyan btn-sm" id="btn-toggle-upload-form">
+            <span id="toggle-upload-text">+ Add Custom Image Challenge</span>
+          </button>
+        </div>
+
+        <!-- Custom Image Uploader Form (Visible by default) -->
+        <div id="custom-upload-container" style="background: rgba(10, 15, 26, 0.9); border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid var(--border-medium); margin-bottom: 1.5rem; display: block;">
+          <h3 style="font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 1rem;">
+            Upload or Link a Challenge Picture for the Arena
+          </h3>
+
+          <!-- Image Source Tabs -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <button type="button" class="btn btn-cyan btn-sm" id="tab-src-file">📁 Upload Image File</button>
+            <button type="button" class="btn btn-outline btn-sm" id="tab-src-url">🔗 Paste Image URL</button>
+          </div>
+
+          <form id="form-add-challenge">
+            <!-- File Upload Dropzone -->
+            <div id="box-upload-file" class="form-group">
+              <label class="form-label">Choose Image from Computer:</label>
+              <div id="dropzone-area" style="border: 2px dashed var(--border-medium); border-radius: var(--radius-md); padding: 1.75rem; text-align: center; cursor: pointer; background: rgba(0, 243, 255, 0.03); transition: all 0.2s ease;">
+                <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🖼️</div>
+                <div style="font-weight: 700; color: #fff; margin-bottom: 0.25rem;">Drag & drop your picture here or click to browse</div>
+                <div style="font-size: 0.82rem; color: var(--text-secondary);">Supports PNG, JPG, WEBP, GIF up to 15MB</div>
+                <input type="file" id="input-challenge-file" accept="image/*" style="display: none;">
+              </div>
+            </div>
+
+            <!-- Web URL Input -->
+            <div id="box-upload-url" class="form-group" style="display: none;">
+              <label class="form-label" for="input-custom-url">Image Web URL (HTTPS):</label>
+              <input type="url" id="input-custom-url" class="form-input" placeholder="https://example.com/my-image.jpg">
+            </div>
+
+            <!-- Image Live Preview -->
+            <div id="custom-image-preview-wrapper" style="display: none; margin-bottom: 1.25rem; text-align: center;">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">IMAGE PREVIEW:</div>
+              <img id="custom-image-preview" src="" alt="Custom Challenge Preview" style="max-height: 220px; max-width: 100%; border-radius: var(--radius-md); border: 2px solid var(--accent-cyan); object-fit: contain;">
+            </div>
+
+            <!-- Metadata Fields -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label" for="input-custom-title">Challenge Title *</label>
+                <input type="text" id="input-custom-title" class="form-input" placeholder="e.g. Cyber Samurai 2099" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-custom-category">Category / Theme</label>
+                <input type="text" id="input-custom-category" class="form-input" placeholder="e.g. Anime, Concept Art, 3D, Abstract" value="Custom Art">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="select-custom-difficulty">Difficulty</label>
+                <select id="select-custom-difficulty" class="form-select">
+                  <option value="Easy">Easy</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="input-custom-desc">Prompt Goal / Objective</label>
+              <textarea id="input-custom-desc" class="form-textarea" style="min-height: 70px;" placeholder="Describe the scene objectives for participants..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="input-custom-hint">Optional Hint for Participants</label>
+              <input type="text" id="input-custom-hint" class="form-input" placeholder="e.g. Pay attention to lighting, metallic textures, and reflections">
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
+              <button type="submit" class="btn btn-emerald" id="btn-save-custom-challenge">
+                <span>➕ Upload & Add Challenge Picture</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Available Challenges Gallery Grid -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
+              Uploaded Challenge Pictures (<span id="challenges-pool-count" style="color: var(--accent-cyan);">0</span>)
+            </div>
+          </div>
+
+          <div id="admin-challenges-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; max-height: 480px; overflow-y: auto; padding-right: 0.5rem;">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Column Grid for Live Management & Challenge Config -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        
+        <!-- Column 1: Challenge Selector & Active Challenge -->
+        <div class="glass-card">
+          <h3 style="font-size: 1.15rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🖼️</span> Selected Picture for Upcoming Round
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label" for="select-challenge-picker">Active Round Challenge:</label>
+            <select id="select-challenge-picker" class="form-select">
+              <option value="">-- Choose Challenge Picture for Round --</option>
+            </select>
+          </div>
+
+          <div id="admin-challenge-preview-box" style="margin-top: 1rem;">
+            <div class="challenge-image-wrapper" id="admin-challenge-wrapper" style="max-height: 240px; min-height: 180px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4);">
+              <img id="admin-challenge-img" src="" style="width: 100%; height: 240px; object-fit: cover; display: none;">
+              <div id="admin-challenge-empty-hint" style="color: var(--text-muted); font-size: 0.95rem; text-align: center; padding: 2rem;">
+                📷 No image selected yet.<br>Upload a picture above to assign to this round.
+              </div>
+            </div>
+            <div style="margin-top: 0.75rem;">
+              <div style="font-weight: 700; font-size: 1.05rem;" id="admin-challenge-title">Awaiting Challenge Image</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);" id="admin-challenge-desc">Upload or select a picture above to begin the round.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Live Participants Manager -->
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>👥</span> Connected Participants (<span id="admin-participants-total">0</span>)
+            </h3>
+          </div>
+
+          <div class="participant-pills-list" id="admin-participants-list" style="max-height: 320px; overflow-y: auto;">
+            <!-- Dynamically populated with kick buttons -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live Submissions & Vote Tally Feed -->
+      <div class="glass-card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>📝</span> Live Submissions & Votes for Current Round
+        </h3>
+        
+        <div class="voting-grid" id="admin-submissions-feed">
+          <!-- Dynamically populated with live submissions & vote badges -->
+        </div>
+      </div>
+
+      <!-- Cumulative Leaderboard Table -->
+      <div class="glass-card">
+        <h3 style="font-size: 1.15rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>📊</span> Overall Competition Standings
+        </h3>
+        
+        <div class="leaderboard-table-wrapper" id="admin-leaderboard-table">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- QR Code Modal Dialog -->
+  <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass-card" style="max-width: 440px; width: 90%; text-align: center; border-color: var(--accent-cyan); box-shadow: var(--shadow-glow-cyan);">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Join Competition</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Scan this QR code with any mobile camera or enter PIN code:
+      </p>
+
+      <div style="background: #0a0d14; padding: 1.25rem; border-radius: var(--radius-lg); display: inline-block; border: 2px solid var(--accent-cyan); margin-bottom: 1rem;">
+        <img id="qr-modal-image" src="" alt="Competition QR Code" style="width: 240px; height: 240px; display: block; border-radius: var(--radius-md);">
+      </div>
+
+      <div style="font-family: var(--font-mono); font-size: 2rem; font-weight: 900; letter-spacing: 0.15em; color: var(--accent-cyan); margin-bottom: 1rem;" id="qr-modal-pin">
+        ------
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-cyan btn-block" id="btn-close-qr-modal">Close Modal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/confetti.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

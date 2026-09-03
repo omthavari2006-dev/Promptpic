@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Prompt Battle - Participant Arena</title>
+  <meta name="description" content="Compete in real-time AI prompt battles. Craft the best visual prompts and vote for winning creations!">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Confetti Canvas for Celebrations -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <a href="/" class="brand-logo" id="header-brand-link">
+      <span class="brand-icon">🎨</span>
+      <div>
+        <div class="brand-name">PROMPT<span class="gradient-text-cyan">BATTLE</span></div>
+      </div>
+      <span class="brand-badge">Player</span>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <button type="button" class="btn btn-outline-cyan btn-sm" id="btn-header-dashboard" style="display: none;">
+        <span>📊 Standings & Stats</span>
+      </button>
+
+      <div class="header-status-badge" id="player-header-status">
+        <span class="status-dot" id="header-status-dot"></span>
+        <span id="header-status-text">Disconnected</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container container-narrow" id="participant-app" style="margin-top: 1.5rem; margin-bottom: 3rem;">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: JOIN COMPETITION FORM -->
+    <!-- ========================================== -->
+    <section id="view-join" class="glass-card interactive highlight-cyan">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚡</div>
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Join the <span class="gradient-text-cyan">Battle Arena</span></h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+          Enter the competition PIN displayed on screen to join the live prompt showdown.
+        </p>
+      </div>
+
+      <form id="form-join" autocomplete="off">
+        <div class="form-group">
+          <label class="form-label" for="input-room-code">
+            <span>Room PIN / Code</span>
+            <span style="color: var(--accent-cyan); font-size: 0.75rem;">6-DIGIT CODE</span>
+          </label>
+          <input 
+            type="text" 
+            id="input-room-code" 
+            class="form-input input-code" 
+            placeholder="e.g. AB12CD" 
+            maxlength="8" 
+            required 
+            autocapitalize="characters"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-name">
+            <span>Your Name / Handle</span>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">REQUIRED</span>
+          </label>
+          <input 
+            type="text" 
+            id="input-name" 
+            class="form-input" 
+            placeholder="e.g. Alex Cipher" 
+            maxlength="28" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-team">
+            <span>Team / Club (Optional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="input-team" 
+            class="form-input" 
+            placeholder="e.g. Neural Ninjas" 
+            maxlength="28"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span>Choose Your Avatar</span>
+          </label>
+          <div class="avatar-grid" id="avatar-picker">
+            <div class="avatar-option selected" data-avatar="🤖">🤖</div>
+            <div class="avatar-option" data-avatar="🚀">🚀</div>
+            <div class="avatar-option" data-avatar="🦊">🦊</div>
+            <div class="avatar-option" data-avatar="⚡">⚡</div>
+            <div class="avatar-option" data-avatar="👾">👾</div>
+            <div class="avatar-option" data-avatar="🧙‍♂️">🧙‍♂️</div>
+            <div class="avatar-option" data-avatar="🔥">🔥</div>
+            <div class="avatar-option" data-avatar="🐱‍💻">🐱‍💻</div>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-join-submit" class="btn btn-cyan btn-lg btn-block" style="margin-top: 1.5rem;">
+          <span>Enter Competition Arena</span>
+          <span>➔</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: LOBBY / WAITING FOR HOST -->
+    <!-- ========================================== -->
+    <section id="view-lobby" class="glass-card" style="display: none; text-align: center;">
+      <div style="font-size: 3.5rem; animation: pulse-glow 2s infinite alternate; margin-bottom: 1rem;">
+        🎮
+      </div>
+      <div class="badge badge-cyan" id="lobby-room-badge" style="margin-bottom: 0.75rem;">
+        ROOM: ------
+      </div>
+      <h2 id="lobby-competition-title" style="font-size: 1.75rem; margin-bottom: 0.5rem;">
+        Waiting for Host to Start
+      </h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        You're in! Prepare your prompt engineering skills. The challenge image will appear when the host starts the round.
+      </p>
+
+      <div class="glass-card" style="background: var(--bg-input); padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
+          CONNECTED PARTICIPANTS (<span id="lobby-participant-count" style="color: var(--accent-cyan);">0</span>)
+        </div>
+        <div class="participant-pills-list" id="lobby-participants-list" style="justify-content: center;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; color: var(--accent-amber); font-family: var(--font-mono); font-size: 0.9rem;">
+        <span class="status-dot waiting"></span>
+        <span>Awaiting round launch...</span>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: ACTIVE CHALLENGE & PROMPT SUBMISSION -->
+    <!-- ========================================== -->
+    <section id="view-challenge" style="display: none;">
+      
+      <!-- Top Status Bar with Round and Timer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div class="badge badge-magenta" id="challenge-round-badge" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
+          ROUND 1
+        </div>
+        <div class="timer-container" id="challenge-timer-box">
+          <span>⏱️</span>
+          <span class="timer-digits" id="challenge-timer-display">01:30</span>
+        </div>
+      </div>
+
+      <!-- Challenge Image Hero -->
+      <div class="glass-card challenge-hero-card" style="margin-bottom: 1.5rem;">
+        <div class="challenge-image-wrapper">
+          <img id="challenge-image" class="challenge-image" src="" alt="Visual Challenge Target">
+          <div class="challenge-badge-overlay">
+            <span class="badge badge-cyan" id="challenge-category">Sci-Fi</span>
+            <span class="badge badge-gold" id="challenge-difficulty">Medium</span>
+          </div>
+        </div>
+
+        <div>
+          <h2 id="challenge-title" style="font-size: 1.4rem; margin-bottom: 0.4rem;">
+            Challenge Name
+          </h2>
+          <p id="challenge-desc" style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 0.75rem;">
+            Write a detailed image generation prompt that would recreate this visual style, mood, and composition.
+          </p>
+
+          <details style="background: rgba(0, 243, 255, 0.05); border: 1px dashed var(--border-medium); border-radius: var(--radius-md); padding: 0.75rem 1rem;">
+            <summary style="cursor: pointer; color: var(--accent-cyan); font-weight: 600; font-size: 0.85rem;">
+              💡 Need inspiration? Click for hints
+            </summary>
+            <p id="challenge-hint" style="color: var(--text-primary); font-size: 0.88rem; margin-top: 0.5rem;">
+              Hint details here...
+            </p>
+          </details>
+        </div>
+      </div>
+
+      <!-- Submission Box -->
+      <div class="glass-card highlight-cyan" id="submission-card-box">
+        <form id="form-submit-prompt">
+          <div class="form-group">
+            <div class="form-label">
+              <span>Your Prompt Formulation</span>
+              <span id="prompt-counter" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
+                0 words | 0 / 500 chars
+              </span>
+            </div>
+            <textarea 
+              id="textarea-prompt" 
+              class="form-textarea" 
+              placeholder="Describe the subject, atmosphere, lighting, camera angle, textures, and artistic style..." 
+              maxlength="600"
+              required
+            ></textarea>
+          </div>
+
+          <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            <button type="submit" id="btn-submit-prompt" class="btn btn-emerald btn-lg" style="flex: 1;">
+              <span>🚀 Submit My Prompt</span>
+            </button>
+          </div>
+
+          <div id="submission-status-feedback" style="display: none; margin-top: 1rem; text-align: center; color: var(--accent-emerald); font-weight: 600; font-size: 0.9rem;">
+            ✅ Prompt submitted! You can update it until submissions close.
+          </div>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: PEER VOTING PHASE -->
+    <!-- ========================================== -->
+    <section id="view-voting" style="display: none;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <div class="badge badge-gold" id="voting-round-badge" style="margin-bottom: 0.25rem;">
+            ROUND 1 PEER VOTING
+          </div>
+          <h2 style="font-size: 1.6rem;">Vote for the <span class="gradient-text-gold">Best Prompt</span></h2>
+        </div>
+        
+        <div class="timer-container" id="voting-timer-box">
+          <span>🗳️</span>
+          <span class="timer-digits" id="voting-timer-display">00:45</span>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; border-color: rgba(255, 183, 3, 0.3);">
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+          🌟 <strong>Rule:</strong> Choose the prompt that best captures the target challenge. <em>You cannot vote for yourself and you can only vote once!</em>
+        </p>
+      </div>
+
+      <!-- Voting Submissions Grid -->
+      <div class="voting-grid" id="voting-submissions-container">
+        <!-- Dynamically injected submission cards -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 5: ROUND WINNER REVEAL -->
+    <!-- ========================================== -->
+    <section id="view-winner" style="display: none; text-align: center;">
+      <div class="winner-hero-card">
+        <div class="trophy-icon-large">🏆</div>
+        <div class="badge badge-gold" id="winner-round-badge" style="margin-bottom: 0.5rem;">
+          ROUND 1 WINNER
+        </div>
+        <h2 class="winner-team-title" id="winner-name-display">
+          Winner Name
+        </h2>
+        <div style="font-family: var(--font-mono); font-size: 1.2rem; color: var(--accent-cyan); font-weight: 700; margin-bottom: 1rem;">
+          <span id="winner-vote-count">0</span> Peer Votes
+        </div>
+
+        <div class="winner-prompt-highlight">
+          <p id="winner-prompt-text">
+            "Prompt content here..."
+          </p>
+        </div>
+
+        <div style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+          Waiting for admin to launch next round...
+        </div>
+      </div>
+
+      <!-- Mini Standings for Current Round -->
+      <div class="glass-card" style="margin-top: 1.5rem; text-align: left;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-secondary);">
+          Round Standings
+        </h3>
+        <div id="round-standings-list">
+          <!-- Dynamically filled -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 6: GRAND FINALE LEADERBOARD -->
+    <!-- ========================================== -->
+    <section id="view-leaderboard" style="display: none;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3.5rem; animation: trophy-float 2s infinite;">👑</div>
+        <h1 style="font-size: 2.2rem;">Competition <span class="gradient-text-gold">Champions</span></h1>
+        <p style="color: var(--text-secondary);">Final standings across all battle rounds</p>
+      </div>
+
+      <!-- Podium for Top 3 -->
+      <div class="podium-container" id="leaderboard-podium">
+        <!-- Dynamically injected podium -->
+      </div>
+
+      <!-- Full Rankings Table -->
+      <div class="leaderboard-table-wrapper" id="leaderboard-full-table">
+        <!-- Dynamically injected table rows -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating Quick Dashboard Access Button -->
+  <button id="btn-floating-dashboard" class="btn btn-cyan btn-sm" style="display: none; position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 99; box-shadow: 0 4px 20px rgba(0, 243, 255, 0.45); border-radius: var(--radius-full); padding: 0.65rem 1.3rem; font-weight: 700;">
+    <span>📊 Standings & Stats</span>
+  </button>
+
+  <!-- PARTICIPANT LIVE DASHBOARD MODAL -->
+  <div id="participant-dashboard-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(4, 6, 10, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="glass-card" style="max-width: 780px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; border-color: var(--accent-cyan); box-shadow: var(--shadow-glow-cyan); padding: 1.5rem; position: relative;">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="font-size: 1.6rem;">📊</div>
+          <div>
+            <h2 style="font-size: 1.3rem; margin: 0;" id="modal-dash-title">Arena Live Dashboard</h2>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);" id="modal-dash-room">ROOM PIN: ------</div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-outline btn-sm" id="btn-close-dashboard-modal" style="border-radius: var(--radius-full); width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+          ✖
+        </button>
+      </div>
+
+      <!-- Player Personal Stats Quick Bar -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div class="stat-box" style="padding: 0.75rem 1rem;">
+          <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1.1rem;">🏅</div>
+          <div class="stat-info">
+            <span class="stat-label" style="font-size: 0.7rem;">Your Rank</span>
+            <span class="stat-value" id="modal-player-rank" style="font-size: 1.25rem;">#1</span>
+          </div>
+        </div>
+
+        <div class="stat-box" style="padding: 0.75rem 1rem;">
+          <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1.1rem; background: rgba(0, 255, 136, 0.1); color: var(--accent-emerald);">⚡</div>
+          <div class="stat-info">
+            <span class="stat-label" style="font-size: 0.7rem;">Your Score</span>
+            <span class="stat-value" id="modal-player-score" style="font-size: 1.25rem; color: var(--accent-emerald);">0 pts</span>
+          </div>
+        </div>
+
+        <div class="stat-box" style="padding: 0.75rem 1rem;">
+          <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1.1rem; background: rgba(255, 183, 3, 0.1); color: var(--accent-amber);">🏆</div>
+          <div class="stat-info">
+            <span class="stat-label" style="font-size: 0.7rem;">Rounds Won</span>
+            <span class="stat-value" id="modal-player-wins" style="font-size: 1.25rem; color: var(--accent-amber);">0</span>
+          </div>
+        </div>
+
+        <div class="stat-box" style="padding: 0.75rem 1rem;">
+          <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1.1rem; background: rgba(139, 92, 246, 0.1); color: var(--accent-purple);">👥</div>
+          <div class="stat-info">
+            <span class="stat-label" style="font-size: 0.7rem;">Total Players</span>
+            <span class="stat-value" id="modal-total-players" style="font-size: 1.25rem;">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+        <button type="button" class="btn btn-cyan btn-sm" id="modal-tab-leaderboard">🏆 Overall Leaderboard</button>
+        <button type="button" class="btn btn-outline btn-sm" id="modal-tab-history">📜 Round History</button>
+        <button type="button" class="btn btn-outline btn-sm" id="modal-tab-players">👥 Connected Players</button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div style="overflow-y: auto; flex: 1; padding-right: 0.3rem;">
+        
+        <!-- Tab 1 Content: Full Leaderboard -->
+        <div id="modal-panel-leaderboard">
+          <div class="leaderboard-table-wrapper" id="modal-leaderboard-table">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Tab 2 Content: Round History -->
+        <div id="modal-panel-history" style="display: none;">
+          <div id="modal-history-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Dynamically populated with past round summaries -->
+          </div>
+        </div>
+
+        <!-- Tab 3 Content: Connected Players -->
+        <div id="modal-panel-players" style="display: none;">
+          <div class="participant-pills-list" id="modal-players-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-cyan btn-sm" id="btn-modal-back">
+          <span>Back to Arena</span>
+          <span>➔</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/confetti.js"></script>
+  <script src="/js/participant.js"></script>
+</body>
+</html>
