@@ -336,8 +336,14 @@ function calculateRoundResults(comp) {
 const helmet = require('helmet'); // security headers
 app.use(helmet({ contentSecurityPolicy: false })); // apply security middleware, disable CSP for inline assets
 app.use(compression()); // enable gzip compression for all responses
-app.use(express.json({ limit: '20mb' })); // increase JSON payload limit
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' })); // cache static assets for a day
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+app.use(express.static(path.join(__dirname, 'public'), { etag: false, maxAge: 0 }));
 
 // API Routes
 app.get('/api/challenges', (req, res) => {
