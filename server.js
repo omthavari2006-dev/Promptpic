@@ -5,14 +5,21 @@ const path = require('path');
 const QRCode = require('qrcode');
 const fs = require('fs');
 const multer = require('multer');
+const compression = require('compression'); // added for response compression
 
 const app = express();
+app.set('trust proxy', 1); // Trust reverse proxy (e.g., Nginx, Cloudflare for stigz.xyz)
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST']
-  }
+  },
+  transports: ['polling', 'websocket'],
+  pingTimeout: 20000,
+  pingInterval: 10000,
+  maxHttpBufferSize: 25 * 1024 * 1024 // 25MB max socket payload size for high-res images
 });
 
 const PORT = process.env.PORT || 3000;
@@ -37,7 +44,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB max file size
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB max file size
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -322,13 +329,15 @@ function calculateRoundResults(comp) {
   } else {
     comp.roundHistory.push(roundSummary);
   }
-
-  return roundSummary;
+    return roundSummary;
 }
 
 // Middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+const helmet = require('helmet'); // security headers
+app.use(helmet({ contentSecurityPolicy: false })); // apply security middleware, disable CSP for inline assets
+app.use(compression()); // enable gzip compression for all responses
+app.use(express.json({ limit: '20mb' })); // increase JSON payload limit
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' })); // cache static assets for a day
 
 // API Routes
 app.get('/api/challenges', (req, res) => {
@@ -336,12 +345,13 @@ app.get('/api/challenges', (req, res) => {
 });
 
 // Image Upload Endpoint for Admin Custom Challenges
-app.post('/api/upload', upload.single('image'), (req, res) => {
+app.post('/api/upload', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'No image file uploaded' });
     }
     const relativeUrl = `/uploads/${req.file.filename}`;
+    // Respond immediately; the file is already written to disk by multer.
     res.json({
       success: true,
       imageUrl: relativeUrl,
@@ -403,7 +413,7 @@ io.on('connection', (socket) => {
   let participantId = null;
 
   // --- ADMIN: Create Competition ---
-  socket.on('admin:create-competition', (data, callback) => {
+  socket.on('admin:create-competition', async (data, callback) => {
     let roomCode = generateRoomCode();
     while (competitions.has(roomCode)) {
       roomCode = generateRoomCode();
@@ -424,10 +434,27 @@ io.on('connection', (socket) => {
 
     console.log(`[Admin] Competition created: ${roomCode} by ${socket.id}`);
 
+    let joinUrl = '';
+    let qrDataUrl = '';
+    try {
+      const host = socket.handshake.headers.host || 'stigz.xyz';
+      const protocol = socket.handshake.headers['x-forwarded-proto'] || (socket.handshake.secure ? 'https' : 'http');
+      joinUrl = `${protocol}://${host}/?room=${roomCode}`;
+      qrDataUrl = await QRCode.toDataURL(joinUrl, {
+        margin: 2,
+        color: { dark: '#00ffff', light: '#0a0d14' },
+        width: 320
+      });
+    } catch (e) {
+      console.error('QR generation error on room creation:', e);
+    }
+
     if (typeof callback === 'function') {
       callback({
         success: true,
         roomCode,
+        joinUrl,
+        qrDataUrl,
         state: getSanitizedRoomState(comp)
       });
     }
@@ -962,9 +989,31 @@ io.on('connection', (socket) => {
 });
 
 // Start Server
-server.listen(PORT, () => {
-  console.log(`🚀 AI Prompt Battle Server running at http://localhost:${PORT}`);
-  console.log(`📱 Participant Interface:  http://localhost:${PORT}/`);
-  console.log(`👨‍💼 Admin Dashboard:       http://localhost:${PORT}/admin`);
-  console.log(`📺 Live Projector Display: http://localhost:${PORT}/display`);
+const os = require('os');
+
+function getLocalIPv4() {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      // Skip over internal (i.e. 127.0.0.1) and non‑IPv4 addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
+
+server.listen(PORT, '0.0.0.0', () => {
+  const localIP = getLocalIPv4();
+  console.log('🚀 AI Prompt Battle Server');
+  console.log('\nLocal:');
+  console.log(`  Participant: http://localhost:${PORT}/`);
+  console.log(`  Admin:       http://localhost:${PORT}/admin`);
+  console.log(`  Display:     http://localhost:${PORT}/display`);
+  console.log('\nNetwork:');
+  console.log(`  Participant: http://${localIP}:${PORT}/`);
+  console.log(`  Admin:       http://${localIP}:${PORT}/admin`);
+  console.log(`  Display:     http://${localIP}:${PORT}/display`);
+  console.log('\n📱 Devices on the same Wi‑Fi can access the Network URLs.');
 });
