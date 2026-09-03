@@ -424,20 +424,38 @@
             return;
           }
 
-          const formData = new FormData();
-          formData.append('image', customImageFile);
+          // Try server disk upload first
+          try {
+            const formData = new FormData();
+            formData.append('image', customImageFile);
 
-          const uploadRes = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-          });
+            const uploadRes = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData
+            });
 
-          const uploadData = await uploadRes.json();
-          if (!uploadData.success || !uploadData.imageUrl) {
-            throw new Error(uploadData.error || 'Upload failed');
+            if (uploadRes.ok) {
+              const contentType = uploadRes.headers.get('content-type') || '';
+              if (contentType.includes('application/json')) {
+                const uploadData = await uploadRes.json();
+                if (uploadData && uploadData.success && uploadData.imageUrl) {
+                  finalImageUrl = uploadData.imageUrl;
+                }
+              }
+            }
+          } catch (uploadErr) {
+            console.warn('Server upload endpoint error, using Base64 fallback:', uploadErr);
           }
 
-          finalImageUrl = uploadData.imageUrl;
+          // Automatic fallback to client-side Data URL (Base64)
+          if (!finalImageUrl) {
+            finalImageUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error('Failed to read image file'));
+              reader.readAsDataURL(customImageFile);
+            });
+          }
         } else {
           finalImageUrl = inputCustomUrl.value.trim();
           if (!finalImageUrl) {
