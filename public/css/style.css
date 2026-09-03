@@ -1031,3 +1031,529 @@ h1, h2, h3, h4, h5, h6 {
   75% { transform: translate(-2px, -2px); }
   100% { transform: translate(0, 0); }
 }
+
+/* ==========================================================================
+   MOBILE & RESPONSIVE DESIGN SYSTEM OVERHAUL
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TABLET & MEDIUM MOBILE VIEWPORTS (max-width: 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  html, body {
+    font-size: 16px;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+
+  .glass-card {
+    padding: 1.25rem !important;
+    margin-bottom: 1.25rem;
+  }
+
+  .app-header {
+    padding: 0.75rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .brand-name {
+    font-size: 1.35rem;
+  }
+
+  .brand-icon {
+    font-size: 1.5rem;
+  }
+
+  .btn-lg {
+    padding: 0.95rem 1.6rem;
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1.3rem;
+    font-size: 1rem;
+  }
+
+  .winner-team-title {
+    font-size: 2rem;
+  }
+
+  .trophy-icon-large {
+    font-size: 4rem;
+  }
+
+  .podium-container {
+    gap: 0.75rem;
+    padding: 0 0.5rem;
+  }
+
+  .podium-first .podium-card { height: 190px; }
+  .podium-second .podium-card { height: 150px; }
+  .podium-third .podium-card { height: 120px; }
+}
+
+/* --------------------------------------------------------------------------
+   2. MOBILE PHONE VIEWPORTS (max-width: 640px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  html, body {
+    font-size: 16px !important; /* Prevents mobile Safari auto-zoom on input focus */
+  }
+
+  /* Containers & Layout Spacing */
+  .container, .container-narrow, .container-wide {
+    padding: 0.65rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Glass Cards */
+  .glass-card {
+    padding: 1rem 0.85rem !important;
+    margin-bottom: 1rem;
+    border-width: 3px !important;
+    box-shadow: 4px 4px 0px #000000, inset 2px 2px 0px rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .glass-card::before {
+    height: 4px;
+  }
+
+  /* App Header & Top Nav */
+  .app-header {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.85rem;
+    border-bottom-width: 3px !important;
+    box-shadow: 0 4px 0px #000000 !important;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .brand-logo {
+    gap: 0.4rem;
+  }
+
+  .brand-icon {
+    font-size: 1.3rem;
+  }
+
+  .brand-name {
+    font-size: 1.15rem;
+  }
+
+  .brand-badge {
+    font-size: 0.55rem;
+    padding: 0.2rem 0.4rem;
+    border-width: 2px;
+    box-shadow: 2px 2px 0px #000000;
+  }
+
+  .header-status-badge {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.68rem;
+    border-width: 2px;
+    box-shadow: 2px 2px 0px #000000;
+    gap: 0.4rem;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  /* Buttons & Push Controls */
+  .btn {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    border-width: 3px !important;
+    box-shadow: 3px 3px 0px #000000, inset 2px 2px 0px rgba(255, 255, 255, 0.3) !important;
+    gap: 0.4rem;
+    word-break: break-word;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .btn-lg {
+    padding: 0.85rem 1.25rem;
+    font-size: 1.05rem;
+    border-width: 3px !important;
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    border-width: 2px !important;
+    box-shadow: 2px 2px 0px #000000 !important;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  /* Dual Role Switcher Header Pane */
+  .role-switcher-container {
+    padding: 0.3rem !important;
+    margin-bottom: 1.25rem;
+    gap: 0.3rem;
+    border-width: 3px !important;
+    box-shadow: inset 3px 3px 0px #000000 !important;
+  }
+
+  .role-tab-btn {
+    padding: 0.6rem 0.3rem;
+    font-size: 0.85rem;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: center;
+    border-width: 2px !important;
+  }
+
+  .role-tab-badge {
+    font-size: 0.5rem;
+    padding: 0.1rem 0.35rem;
+    border-width: 1px;
+  }
+
+  /* Form Input Controls & Slot Fields */
+  .form-group {
+    margin-bottom: 1rem;
+    gap: 0.35rem;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .form-input, .form-textarea, .form-select {
+    padding: 0.75rem 0.85rem;
+    font-size: 1rem;
+    border-width: 3px !important;
+  }
+
+  .input-code {
+    font-size: 1.35rem !important;
+    letter-spacing: 0.15em !important;
+    padding: 0.65rem 0.5rem !important;
+  }
+
+  .form-textarea {
+    min-height: 95px;
+    padding: 0.75rem;
+  }
+
+  /* Avatar Selector Grid */
+  .avatar-grid {
+    gap: 0.35rem;
+    justify-content: center;
+  }
+
+  .avatar-option {
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
+    border-width: 3px;
+    box-shadow: 3px 3px 0px #000000;
+  }
+
+  /* Retro Health Bar / Timer Component */
+  .timer-container {
+    padding: 0.35rem 0.75rem;
+    gap: 0.4rem;
+    border-width: 3px !important;
+    box-shadow: 3px 3px 0px #000000 !important;
+  }
+
+  .timer-digits {
+    font-size: 1.35rem;
+  }
+
+  /* Challenge Image Frame */
+  .challenge-image-wrapper {
+    max-height: 320px;
+    border-width: 3px;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  .challenge-image {
+    max-height: 320px;
+    object-fit: contain;
+  }
+
+  .challenge-badge-overlay {
+    top: 0.5rem;
+    left: 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .badge {
+    font-size: 0.58rem;
+    padding: 0.25rem 0.5rem;
+    border-width: 2px;
+    box-shadow: 2px 2px 0px #000000;
+  }
+
+  /* Peer Voting Grid & Submission Cards */
+  .voting-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .submission-card {
+    padding: 1rem;
+    gap: 0.85rem;
+    border-width: 3px;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  .submission-header {
+    gap: 0.5rem;
+  }
+
+  .author-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 1.25rem;
+    border-width: 2px;
+    box-shadow: 2px 2px 0px #000000;
+  }
+
+  .author-name {
+    font-size: 0.95rem;
+  }
+
+  .prompt-content-box {
+    padding: 0.75rem;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    border-width: 2px;
+  }
+
+  .vote-action-footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: space-between;
+  }
+
+  .vote-live-count {
+    font-size: 1.1rem;
+  }
+
+  /* Winner Reveal Hero Card */
+  .winner-hero-card {
+    padding: 1.5rem 0.85rem;
+    border-width: 3px;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  .trophy-icon-large {
+    font-size: 3.2rem;
+  }
+
+  .winner-team-title {
+    font-size: 1.5rem;
+    text-shadow: 2px 2px 0px #000000;
+    margin: 0.5rem 0 0.35rem;
+  }
+
+  .winner-prompt-highlight {
+    padding: 0.85rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin: 1rem auto;
+    border-width: 2px;
+  }
+
+  /* Leaderboard Podium Pedestals */
+  .podium-container {
+    gap: 0.35rem;
+    margin: 1.5rem 0 1.25rem;
+    padding: 0;
+  }
+
+  .podium-column {
+    max-width: 100%;
+  }
+
+  .podium-card {
+    padding: 0.65rem 0.2rem;
+    border-width: 3px;
+    box-shadow: 3px 3px 0px #000000;
+  }
+
+  .podium-first .podium-card { height: 165px; }
+  .podium-second .podium-card { height: 130px; }
+  .podium-third .podium-card { height: 105px; }
+
+  .podium-medal {
+    font-size: 1.4rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .podium-avatar {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .podium-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    max-width: 100%;
+  }
+
+  .podium-score {
+    font-size: 0.95rem;
+    margin-top: 0.15rem;
+  }
+
+  /* Leaderboard Table Mobile Grid Overhaul */
+  .leaderboard-table-wrapper {
+    border-width: 3px;
+    box-shadow: 4px 4px 0px #000000;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .leaderboard-row {
+    grid-template-columns: 36px 36px 1fr auto;
+    padding: 0.65rem 0.75rem;
+    gap: 0.4rem;
+    border-bottom-width: 3px;
+  }
+
+  /* Hide 4th column (WINS) on mobile row header & data rows to guarantee 4-column fit */
+  .leaderboard-row > div:nth-child(4) {
+    display: none;
+  }
+
+  .rank-badge {
+    font-size: 0.95rem;
+  }
+
+  .rank-badge.top-1 { font-size: 1.15rem; }
+  .rank-badge.top-2 { font-size: 1rem; }
+  .rank-badge.top-3 { font-size: 1rem; }
+
+  /* Admin Dashboard Stats & Host Action Controls */
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .stat-box {
+    padding: 0.65rem 0.5rem;
+    gap: 0.4rem;
+    border-width: 3px;
+    box-shadow: 3px 3px 0px #000000;
+  }
+
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+    border-width: 2px;
+  }
+
+  .stat-label {
+    font-size: 0.62rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  #admin-control-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  #admin-control-buttons .btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 1rem;
+    padding: 0.85rem 1rem;
+    margin-left: 0 !important;
+  }
+
+  /* Toast Notifications */
+  .toast-container {
+    bottom: 1rem;
+    right: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.85rem;
+    border-width: 3px;
+    box-shadow: 3px 3px 0px #000000;
+  }
+
+  /* Modal Dialog Box Adjustments */
+  #participant-dashboard-modal .glass-card {
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    padding: 1rem !important;
+  }
+
+  /* Projector Display Overrides on Mobile */
+  .display-header {
+    padding: 0.6rem 0.85rem !important;
+  }
+
+  .huge-pin-code {
+    font-size: 2.2rem !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  .big-timer-badge {
+    font-size: 2rem !important;
+  }
+
+  .big-qr-box {
+    padding: 1.25rem !important;
+    width: 100% !important;
+  }
+
+  #disp-qr-img {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. EXTRA SMALL MOBILE VIEWPORTS (max-width: 380px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 380px) {
+  html, body {
+    font-size: 15px !important;
+  }
+
+  .brand-name {
+    font-size: 1.02rem;
+  }
+
+  .input-code {
+    font-size: 1.15rem !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  .podium-name {
+    font-size: 0.75rem;
+  }
+
+  .podium-score {
+    font-size: 0.85rem;
+  }
+}
+
