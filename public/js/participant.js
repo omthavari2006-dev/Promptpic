@@ -27,12 +27,27 @@
   const viewWinner = document.getElementById('view-winner');
   const viewLeaderboard = document.getElementById('view-leaderboard');
 
-  // Join Form Elements
+  // Role Switcher & Header Badge Elements
+  const headerRoleBadge = document.getElementById('header-role-badge');
+  const tabBtnParticipant = document.getElementById('tab-btn-participant');
+  const tabBtnAdmin = document.getElementById('tab-btn-admin');
+  const rolePaneParticipant = document.getElementById('role-pane-participant');
+  const rolePaneAdmin = document.getElementById('role-pane-admin');
+
+  // Join Form Elements (Participant)
   const formJoin = document.getElementById('form-join');
   const inputRoomCode = document.getElementById('input-room-code');
   const inputName = document.getElementById('input-name');
   const inputTeam = document.getElementById('input-team');
   const avatarPicker = document.getElementById('avatar-picker');
+
+  // Admin Create / Rejoin Form Elements
+  const formCreateAdmin = document.getElementById('form-create-admin');
+  const inputAdminTitle = document.getElementById('input-admin-title');
+  const selectAdminDuration = document.getElementById('select-admin-duration');
+  const btnCreateAdminSubmit = document.getElementById('btn-create-admin-submit');
+  const formRejoinAdmin = document.getElementById('form-rejoin-admin');
+  const inputRejoinAdminCode = document.getElementById('input-rejoin-admin-code');
 
   // Challenge Form Elements
   const challengeRoundBadge = document.getElementById('challenge-round-badge');
@@ -114,9 +129,71 @@
     }
   }
 
-  // Parse Query Parameters (e.g. ?room=ABCD)
+  // --- DUAL ROLE SWITCHER (PARTICIPANT vs HOST ADMIN) ---
+  function setRoleMode(mode) {
+    if (mode === 'admin') {
+      if (tabBtnAdmin) {
+        tabBtnAdmin.classList.add('active');
+        tabBtnAdmin.setAttribute('aria-selected', 'true');
+      }
+      if (tabBtnParticipant) {
+        tabBtnParticipant.classList.remove('active');
+        tabBtnParticipant.setAttribute('aria-selected', 'false');
+      }
+      if (rolePaneParticipant) rolePaneParticipant.style.display = 'none';
+      if (rolePaneAdmin) rolePaneAdmin.style.display = 'block';
+      if (viewJoin) {
+        viewJoin.classList.remove('highlight-cyan');
+        viewJoin.classList.add('highlight-magenta');
+      }
+      if (headerRoleBadge) {
+        headerRoleBadge.textContent = 'Host Admin';
+        headerRoleBadge.style.borderColor = 'var(--accent-magenta)';
+        headerRoleBadge.style.color = 'var(--accent-magenta)';
+        headerRoleBadge.style.background = 'rgba(255, 0, 119, 0.12)';
+      }
+    } else {
+      if (tabBtnParticipant) {
+        tabBtnParticipant.classList.add('active');
+        tabBtnParticipant.setAttribute('aria-selected', 'true');
+      }
+      if (tabBtnAdmin) {
+        tabBtnAdmin.classList.remove('active');
+        tabBtnAdmin.setAttribute('aria-selected', 'false');
+      }
+      if (rolePaneParticipant) rolePaneParticipant.style.display = 'block';
+      if (rolePaneAdmin) rolePaneAdmin.style.display = 'none';
+      if (viewJoin) {
+        viewJoin.classList.remove('highlight-magenta');
+        viewJoin.classList.add('highlight-cyan');
+      }
+      if (headerRoleBadge) {
+        headerRoleBadge.textContent = 'Player';
+        headerRoleBadge.style.borderColor = 'var(--border-medium)';
+        headerRoleBadge.style.color = 'var(--accent-cyan)';
+        headerRoleBadge.style.background = 'rgba(0, 243, 255, 0.12)';
+      }
+    }
+  }
+
+  if (tabBtnParticipant) {
+    tabBtnParticipant.addEventListener('click', () => setRoleMode('participant'));
+  }
+  if (tabBtnAdmin) {
+    tabBtnAdmin.addEventListener('click', () => setRoleMode('admin'));
+  }
+
+  // Parse Query Parameters (e.g. ?room=ABCD or ?mode=admin)
   const urlParams = new URLSearchParams(window.location.search);
   const roomParam = urlParams.get('room');
+  const modeParam = urlParams.get('mode') || (urlParams.get('admin') ? 'admin' : null);
+
+  if (modeParam === 'admin') {
+    setRoleMode('admin');
+  } else {
+    setRoleMode('participant');
+  }
+
   if (roomParam && inputRoomCode) {
     inputRoomCode.value = roomParam.toUpperCase();
   }
@@ -155,6 +232,54 @@
     const mins = Math.floor(s / 60);
     const secs = s % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // --- ADMIN: Create Competition Handler (From Loading Page) ---
+  if (formCreateAdmin) {
+    formCreateAdmin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = inputAdminTitle ? inputAdminTitle.value.trim() : 'AI Prompt Battle Arena';
+      const roundDuration = selectAdminDuration ? parseInt(selectAdminDuration.value, 10) || 90 : 90;
+
+      if (btnCreateAdminSubmit) {
+        btnCreateAdminSubmit.disabled = true;
+        btnCreateAdminSubmit.innerHTML = '<span>⚡ Launching Arena...</span>';
+      }
+
+      if (window.soundEngine) window.soundEngine.init();
+
+      socket.emit('admin:create-competition', { title, roundDuration }, (res) => {
+        if (!res || !res.success) {
+          if (btnCreateAdminSubmit) {
+            btnCreateAdminSubmit.disabled = false;
+            btnCreateAdminSubmit.innerHTML = '<span>⚡ Launch Competition Arena</span><span>➔</span>';
+          }
+          showToast(res ? res.error : 'Failed to create competition', 'error');
+          return;
+        }
+
+        localStorage.setItem('prompt_admin_room', res.roomCode);
+        showToast(`Competition Created! Launching Admin Console (PIN: ${res.roomCode})...`, 'success');
+
+        setTimeout(() => {
+          window.location.href = `/admin?room=${res.roomCode}`;
+        }, 350);
+      });
+    });
+  }
+
+  // --- ADMIN: Rejoin Room Handler (From Loading Page) ---
+  if (formRejoinAdmin) {
+    formRejoinAdmin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = (inputRejoinAdminCode ? inputRejoinAdminCode.value : '').toUpperCase().trim();
+      if (!code) {
+        showToast('Please enter a room PIN', 'warning');
+        return;
+      }
+      localStorage.setItem('prompt_admin_room', code);
+      window.location.href = `/admin?room=${code}`;
+    });
   }
 
   // Join Form Submit Handler

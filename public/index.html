@@ -19,7 +19,7 @@
       <div>
         <div class="brand-name">PROMPT<span class="gradient-text-cyan">BATTLE</span></div>
       </div>
-      <span class="brand-badge">Player</span>
+      <span class="brand-badge" id="header-role-badge">Player</span>
     </a>
 
     <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -38,83 +38,172 @@
   <main class="container container-narrow" id="participant-app" style="margin-top: 1.5rem; margin-bottom: 3rem;">
 
     <!-- ========================================== -->
-    <!-- VIEW 1: JOIN COMPETITION FORM -->
+    <!-- VIEW 1: COMBINED LANDING / SETUP (PARTICIPANT & ADMIN) -->
     <!-- ========================================== -->
     <section id="view-join" class="glass-card interactive highlight-cyan">
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚡</div>
-        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Join the <span class="gradient-text-cyan">Battle Arena</span></h1>
-        <p style="color: var(--text-secondary); font-size: 0.95rem;">
-          Enter the competition PIN displayed on screen to join the live prompt showdown.
-        </p>
+      
+      <!-- Dual Mode Selector: Participant vs Host Admin -->
+      <div class="role-switcher-container" role="tablist" aria-label="Select Arena Role">
+        <button type="button" class="role-tab-btn active tab-participant" id="tab-btn-participant" role="tab" aria-selected="true">
+          <span>🎮</span>
+          <span>Participant</span>
+          <span class="role-tab-badge">Join Game</span>
+        </button>
+        <button type="button" class="role-tab-btn tab-admin" id="tab-btn-admin" role="tab" aria-selected="false">
+          <span>⚡</span>
+          <span>Host Admin</span>
+          <span class="role-tab-badge">Create Game</span>
+        </button>
       </div>
 
-      <form id="form-join" autocomplete="off">
-        <div class="form-group">
-          <label class="form-label" for="input-room-code">
-            <span>Room PIN / Code</span>
-            <span style="color: var(--accent-cyan); font-size: 0.75rem;">6-DIGIT CODE</span>
-          </label>
-          <input 
-            type="text" 
-            id="input-room-code" 
-            class="form-input input-code" 
-            placeholder="e.g. AB12CD" 
-            maxlength="8" 
-            required 
-            autocapitalize="characters"
-          >
+      <!-- ROLE PANE 1: PARTICIPANT (JOIN GAME) -->
+      <div id="role-pane-participant" class="role-content-pane">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚡</div>
+          <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Join the <span class="gradient-text-cyan">Battle Arena</span></h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Enter the competition PIN displayed on screen to join the live prompt showdown.
+          </p>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="input-name">
-            <span>Your Name / Handle</span>
-            <span style="color: var(--text-muted); font-size: 0.75rem;">REQUIRED</span>
-          </label>
-          <input 
-            type="text" 
-            id="input-name" 
-            class="form-input" 
-            placeholder="e.g. Alex Cipher" 
-            maxlength="28" 
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="input-team">
-            <span>Team / Club (Optional)</span>
-          </label>
-          <input 
-            type="text" 
-            id="input-team" 
-            class="form-input" 
-            placeholder="e.g. Neural Ninjas" 
-            maxlength="28"
-          >
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
-            <span>Choose Your Avatar</span>
-          </label>
-          <div class="avatar-grid" id="avatar-picker">
-            <div class="avatar-option selected" data-avatar="🤖">🤖</div>
-            <div class="avatar-option" data-avatar="🚀">🚀</div>
-            <div class="avatar-option" data-avatar="🦊">🦊</div>
-            <div class="avatar-option" data-avatar="⚡">⚡</div>
-            <div class="avatar-option" data-avatar="👾">👾</div>
-            <div class="avatar-option" data-avatar="🧙‍♂️">🧙‍♂️</div>
-            <div class="avatar-option" data-avatar="🔥">🔥</div>
-            <div class="avatar-option" data-avatar="🐱‍💻">🐱‍💻</div>
+        <form id="form-join" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="input-room-code">
+              <span>Room PIN / Code</span>
+              <span style="color: var(--accent-cyan); font-size: 0.75rem;">6-DIGIT CODE</span>
+            </label>
+            <input 
+              type="text" 
+              id="input-room-code" 
+              class="form-input input-code" 
+              placeholder="e.g. AB12CD" 
+              maxlength="8" 
+              required 
+              autocapitalize="characters"
+            >
           </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-name">
+              <span>Your Name / Handle</span>
+              <span style="color: var(--text-muted); font-size: 0.75rem;">REQUIRED</span>
+            </label>
+            <input 
+              type="text" 
+              id="input-name" 
+              class="form-input" 
+              placeholder="e.g. Alex Cipher" 
+              maxlength="28" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-team">
+              <span>Team / Club (Optional)</span>
+            </label>
+            <input 
+              type="text" 
+              id="input-team" 
+              class="form-input" 
+              placeholder="e.g. Neural Ninjas" 
+              maxlength="28"
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span>Choose Your Avatar</span>
+            </label>
+            <div class="avatar-grid" id="avatar-picker">
+              <div class="avatar-option selected" data-avatar="🤖">🤖</div>
+              <div class="avatar-option" data-avatar="🚀">🚀</div>
+              <div class="avatar-option" data-avatar="🦊">🦊</div>
+              <div class="avatar-option" data-avatar="⚡">⚡</div>
+              <div class="avatar-option" data-avatar="👾">👾</div>
+              <div class="avatar-option" data-avatar="🧙‍♂️">🧙‍♂️</div>
+              <div class="avatar-option" data-avatar="🔥">🔥</div>
+              <div class="avatar-option" data-avatar="🐱‍💻">🐱‍💻</div>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-join-submit" class="btn btn-cyan btn-lg btn-block" style="margin-top: 1.5rem;">
+            <span>Enter Competition Arena</span>
+            <span>➔</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ROLE PANE 2: HOST ADMIN (CREATE GAME) -->
+      <div id="role-pane-admin" class="role-content-pane" style="display: none;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">👑</div>
+          <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Host an <span class="gradient-text-magenta">AI Prompt Battle</span></h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Configure your arena settings, upload challenge pictures, and manage live rounds.
+          </p>
         </div>
 
-        <button type="submit" id="btn-join-submit" class="btn btn-cyan btn-lg btn-block" style="margin-top: 1.5rem;">
-          <span>Enter Competition Arena</span>
-          <span>➔</span>
-        </button>
-      </form>
+        <form id="form-create-admin" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="input-admin-title">
+              <span>Event / Competition Name</span>
+              <span style="color: var(--accent-magenta); font-size: 0.75rem;">REQUIRED</span>
+            </label>
+            <input 
+              type="text" 
+              id="input-admin-title" 
+              class="form-input" 
+              placeholder="e.g. ACM AI Prompt Showdown 2026" 
+              value="AI Club Prompt Battle" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="select-admin-duration">
+              <span>Default Round Duration</span>
+              <span style="color: var(--text-muted); font-size: 0.75rem;">TIMED PHASE</span>
+            </label>
+            <select id="select-admin-duration" class="form-select">
+              <option value="60">60 Seconds (Fast Blitz)</option>
+              <option value="90" selected>90 Seconds (Recommended Standard)</option>
+              <option value="120">120 Seconds (Standard Extended)</option>
+              <option value="180">180 Seconds (Deep Crafting)</option>
+            </select>
+          </div>
+
+          <button type="submit" id="btn-create-admin-submit" class="btn btn-magenta btn-lg btn-block" style="margin-top: 1.5rem;">
+            <span>⚡ Launch Competition Arena</span>
+            <span>➔</span>
+          </button>
+        </form>
+
+        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); text-align: center;">
+          <details style="text-align: left; background: rgba(255, 0, 119, 0.04); border: 1px dashed rgba(255, 0, 119, 0.25); border-radius: var(--radius-md); padding: 0.85rem 1.1rem;">
+            <summary style="cursor: pointer; color: var(--accent-magenta); font-weight: 600; font-size: 0.88rem;">
+              🔑 Already created a room? Enter Admin Console
+            </summary>
+            <form id="form-rejoin-admin" style="margin-top: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap;" autocomplete="off">
+              <input 
+                type="text" 
+                id="input-rejoin-admin-code" 
+                class="form-input input-code" 
+                placeholder="PIN" 
+                maxlength="8" 
+                style="flex: 1; min-width: 140px; padding: 0.6rem 0.8rem; font-size: 1.1rem;" 
+                required 
+                autocapitalize="characters"
+              >
+              <button type="submit" class="btn btn-outline-cyan btn-sm" style="white-space: nowrap;">
+                <span>Manage Room</span>
+                <span>➔</span>
+              </button>
+            </form>
+          </details>
+        </div>
+      </div>
+
     </section>
 
     <!-- ========================================== -->
